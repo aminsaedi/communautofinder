@@ -104,7 +104,10 @@ func searchCar(searchingType SearchType, cityId CityId, currentCoordinate Coordi
 
 					err = apiCall(urlCalled, &flexAvailable)
 
-					nbCarFound = flexAvailable.TotalNbVehicles
+					// nbCarFound = flexAvailable.TotalNbVehicles
+					if flexAvailable.TotalNbVehicles > 0 {
+						nbCarFound = flexAvailable.Vehicles[0].VehicleId
+					}
 				} else if searchingType == SearchingStation {
 					var stationsAvailable stationsResponse
 
