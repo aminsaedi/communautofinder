@@ -32,5 +32,6 @@ type flexCarResponse struct {
 }
 
 type vehicle struct {
-	VehicleId int `json:"vehicleId"`
+	VehicleId       int      `json:"vehicleId"`
+	VehicleLocation location `json:"vehicleLocation"`
 }

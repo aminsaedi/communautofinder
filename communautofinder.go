@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"time"
@@ -16,6 +17,47 @@ const fetchDelayInMin = 1 // delay between two API call
 const dateFormat = "2006-01-02T15:04:05" // time format accepted by communauto API
 
 // As soon as at least one car is found return the number of cars found
+
+// Function to calculate the distance between two coordinates using the Haversine formula
+func haversine(coord1, coord2 location) float64 {
+	const earthRadius = 6371 // Earth radius in kilometers
+
+	dLat := (coord2.Latitude - coord1.Latitude) * (math.Pi / 180.0)
+	dLon := (coord2.Longitude - coord1.Longitude) * (math.Pi / 180.0)
+
+	lat1 := coord1.Latitude * (math.Pi / 180.0)
+	lat2 := coord2.Latitude * (math.Pi / 180.0)
+
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(lat1)*math.Cos(lat2)*
+			math.Sin(dLon/2)*math.Sin(dLon/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	return earthRadius * c // Distance in kilometers
+}
+
+// Function to find the closest vehicle to the given coordinates
+func closestVehicle(vehicles []vehicle, target location) *vehicle {
+	if len(vehicles) == 0 {
+		return nil // Return nil if the vehicle array is empty
+	}
+	if len(vehicles) == 1 {
+		return &vehicles[0] // Return the only vehicle if there is only one
+	}
+
+	closest := &vehicles[0]
+	closestDistance := haversine(closest.VehicleLocation, target)
+
+	for _, v := range vehicles[1:] {
+		distance := haversine(v.VehicleLocation, target)
+		if distance < closestDistance {
+			closest = &v
+			closestDistance = distance
+		}
+	}
+
+	return closest
+}
 
 func SearchStationCar(cityId CityId, currentCoordinate Coordinate, marginInKm float64, startDate time.Time, endDate time.Time, vehiculeType VehiculeType) int {
 	responseChannel := make(chan int, 1)
@@ -106,7 +148,16 @@ func searchCar(searchingType SearchType, cityId CityId, currentCoordinate Coordi
 
 					// nbCarFound = flexAvailable.TotalNbVehicles
 					if flexAvailable.TotalNbVehicles > 0 {
-						nbCarFound = flexAvailable.Vehicles[0].VehicleId
+						// log.Printf("Car Coordinates : %f, %f", flexAvailable.Vehicles[0].VehicleLocation.Latitude, flexAvailable.Vehicles[0].VehicleLocation.Longitude)
+						// nbCarFound = flexAvailable.Vehicles[0].VehicleId
+						// Find the closest car
+						closest := closestVehicle(flexAvailable.Vehicles, location{Latitude: currentCoordinate.latitude, Longitude: currentCoordinate.longitude})
+						if closest != nil {
+							nbCarFound = closest.VehicleId
+						} else {
+							log.Println("Failed to find closest vehicle, Falling back to the first one")
+							nbCarFound = flexAvailable.Vehicles[0].VehicleId
+						}
 					}
 				} else if searchingType == SearchingStation {
 					var stationsAvailable stationsResponse
