@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const fetchDelayInMin = 1 // delay between two API call
+const fetchDelayInMin = 0.1 // delay between two API call
 
 const dateFormat = "2006-01-02T15:04:05" // time format accepted by communauto API
 
@@ -80,7 +80,6 @@ func SearchFlexCar(cityId CityId, currentCoordinate Coordinate, marginInKm float
 
 // This function is designed to be called as a goroutine. As soon as at least one car is found return the number of cars found. Or can be cancelled by the context
 func SearchStationCarForGoRoutine(cityId CityId, currentCoordinate Coordinate, marginInKm float64, startDate time.Time, endDate time.Time, vehiculeType VehiculeType, responseChannel chan<- int, ctx context.Context, cancelCtxFunc context.CancelFunc) int {
-
 	defer func() {
 		if r := recover(); r != nil {
 			responseChannel <- -1
@@ -93,7 +92,6 @@ func SearchStationCarForGoRoutine(cityId CityId, currentCoordinate Coordinate, m
 
 // This function is designed to be called as a goroutine. As soon as at least one car is found return the number of cars found. Or can be cancelled by the context
 func SearchFlexCarForGoRoutine(cityId CityId, currentCoordinate Coordinate, marginInKm float64, responseChannel chan<- int, ctx context.Context, cancelCtxFunc context.CancelFunc) int {
-
 	defer func() {
 		if r := recover(); r != nil {
 			responseChannel <- -1
@@ -126,7 +124,6 @@ func searchCar(searchingType SearchType, cityId CityId, currentCoordinate Coordi
 	msSecondeToSleep := 0
 
 	for {
-
 		select {
 		case <-ctx.Done():
 			responseChannel <- -1
@@ -189,7 +186,6 @@ func searchCar(searchingType SearchType, cityId CityId, currentCoordinate Coordi
 // Make an api call at url passed and return the result in response object
 func apiCall(url string, response interface{}) error {
 	resp, err := http.Get(url)
-
 	if err != nil {
 		log.Fatal(err)
 	}
