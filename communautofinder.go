@@ -177,7 +177,8 @@ func searchCar(searchingType SearchType, cityId CityId, currentCoordinate Coordi
 					return nbCarFound
 				}
 
-				msSecondeToSleep = fetchDelayInMin * 60 * 1000 // Wait only 1ms each time to don't block the for loop and be able to catch the cancel signal
+				//msSecondeToSleep = fetchDelayInMin * 60 * 1000 // Wait only 1ms each time to don't block the for loop and be able to catch the cancel signal
+				msSecondeToSleep = 1500 // Wait only 1ms each time to don't block the for loop and be able to catch the cancel signal
 			}
 		}
 	}
